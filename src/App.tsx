@@ -1,9 +1,11 @@
+import Router from "@/router/routes";
+import { AuthProvider } from "@/usecases/auth/useAuth";
+
 const App = () => {
   return (
-    <>
-      <h1 className="text-primary font-bold">halo dunia</h1>
-      <h1 className="text-3xl font-500 underline">Hello world!</h1>
-    </>
+    <AuthProvider>
+      <Router />
+    </AuthProvider>
   );
 };
 
