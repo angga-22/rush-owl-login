@@ -17,7 +17,7 @@
 ### Deployment
 
 - the `frontend` is currently automatically deployed to `staging` env
-- staging: https://staging-rush-owl.vercel.app/
+- staging: https://rush-owl-login.vercel.app/login
 - prod: https://rush-owl.vercel.app/
 
 ### Workflows
