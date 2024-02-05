@@ -19,5 +19,9 @@ export default defineConfig({
     include: ["**/*.{test,spec}.?(c|m)[jt]s?(x)"],
     exclude: ["**/node_modules/**", "**/dist/**"],
     setupFiles: "./setupTest.js",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+    },
   },
 });

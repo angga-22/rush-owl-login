@@ -9,7 +9,7 @@ import loading from "@/assets/lottie/loading-2.json";
 
 const Form = () => {
   const {
-    handleSubmit,
+    memoizedHandleSubmit,
     handlePasswordChange,
     handleEmailChange,
     onTogglePassword,
@@ -43,7 +43,7 @@ const Form = () => {
             </p>
           </div>
           <div className="px-6">
-            <form role="form" onSubmit={handleSubmit}>
+            <form role="form" onSubmit={memoizedHandleSubmit}>
               <div className="flex items-center mb-5">
                 <InputField
                   id="floating_email"
@@ -127,8 +127,6 @@ const Form = () => {
                       loop={true}
                       style={{ width: 50, padding: 0, margin: 0 }}
                       autoPlay
-                      autoSize={true}
-                      resizeMode="center"
                     />
                   </div>
                 ) : (

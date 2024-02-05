@@ -1,7 +1,6 @@
 import { useAuth } from "./useAuth";
 import * as yup from "yup";
-import { useReducer } from "react";
-import { useNavigate } from "react-router";
+import { useCallback, useReducer, useMemo } from "react";
 
 interface IState {
   email: string;
@@ -45,7 +44,6 @@ export const useLogin = () => {
     errorEmail: ``,
   });
 
-  const navigate = useNavigate();
   const { login, isLoading, errorLogin } = useAuth();
 
   const validationSchema = yup.object().shape({
@@ -59,45 +57,50 @@ export const useLogin = () => {
   const onTogglePassword = () => {
     dispatch({ type: "SET_PASSWORD_VISIBLE", payload: !state.showPassword });
   };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: "SET_ERROR_PASSWORD", payload: `` });
     dispatch({ type: "SET_PASSWORD_CHANGE", payload: e.target.value });
-  };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  }, []);
+
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: "SET_ERROR_EMAIL", payload: `` });
     dispatch({ type: "SET_EMAIL_CHANGE", payload: e.target.value });
-  };
+  }, []);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    validationSchema
-      .validate({ email, password }, { abortEarly: true })
-      .then(() => {
-        login({ email, password });
-      })
-      .catch((error) => {
-        const passwordError = error.message.startsWith("Password");
-        if (passwordError) {
-          dispatch({ type: "SET_ERROR_PASSWORD", payload: error.message });
-        } else {
-          dispatch({ type: "SET_ERROR_EMAIL", payload: error.message });
-        }
-      });
-  };
+  const handleSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+      validationSchema
+        .validate({ email, password }, { abortEarly: true })
+        .then(() => {
+          login({ email, password });
+        })
+        .catch((error) => {
+          const passwordError = error.message.startsWith("Password");
+          const emailError = error.message.startsWith("Email");
+          if (passwordError) {
+            dispatch({ type: "SET_ERROR_PASSWORD", payload: error.message });
+          }
+          if (emailError) {
+            dispatch({ type: "SET_ERROR_EMAIL", payload: error.message });
+          }
+        });
+    },
+    [login, validationSchema]
+  );
+  const memoizedHandleSubmit = useMemo(() => handleSubmit, [handleSubmit]);
 
   return {
-    handleSubmit,
+    memoizedHandleSubmit,
     onTogglePassword,
     state,
     handlePasswordChange,
     handleEmailChange,
     isLoading,
-    navigate,
     errorLogin,
   };
 };
