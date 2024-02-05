@@ -95,6 +95,7 @@ export const useLogin = () => {
   const memoizedHandleSubmit = useMemo(() => handleSubmit, [handleSubmit]);
 
   return {
+    handleSubmit,
     memoizedHandleSubmit,
     onTogglePassword,
     state,

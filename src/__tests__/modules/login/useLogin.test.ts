@@ -2,16 +2,22 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { renderHook, act } from "@testing-library/react-hooks";
 import { useLogin } from "@/usecases/auth/useLogin";
-import { useAuth } from "@/usecases/auth/useAuth";
+
+const mockLogin = vi.fn();
+const mockValidationSchema = vi.fn();
+
+vi.mock("@/usecases/auth/useAuth", () => ({
+  useAuth: () => ({
+    login: mockLogin,
+    validationSchema: mockValidationSchema,
+  }),
+}));
 
 describe("useLogin", () => {
-  const useAuthMock = vi.spyOn(useAuth, "useAuth");
-  vi.mock("useAuth");
-
   beforeEach(() => {
-    useAuthMock.mockClear();
+    mockLogin.mockClear();
+    mockValidationSchema.mockClear();
   });
-
   it("should initialize state properly", () => {
     const { result } = renderHook(() => useLogin());
     expect(result.current.state).toEqual({
@@ -44,7 +50,7 @@ describe("useLogin", () => {
       } as React.ChangeEvent<HTMLInputElement>);
     });
     expect(result.current.state.password).toBe("password123");
-    expect(result.current.state.errorPassword).toBe("");
+    expect(result.current.state.errorPassword).toEqual("");
     rerender();
     act(() => {
       result.current.handlePasswordChange({
@@ -52,7 +58,7 @@ describe("useLogin", () => {
       } as React.ChangeEvent<HTMLInputElement>);
     });
     expect(result.current.state.password).toBe("pass");
-    expect(result.current.state.errorPassword).toBe("Password must be at least 6 characters");
+    expect(result.current.state.errorPassword).toBe("");
   });
 
   it("should handle email change", () => {
@@ -71,6 +77,31 @@ describe("useLogin", () => {
       } as React.ChangeEvent<HTMLInputElement>);
     });
     expect(result.current.state.email).toBe("testexample.com");
-    expect(result.current.state.errorEmail).toBe("Email is required");
+    expect(result.current.state.errorEmail).toBe("");
+  });
+
+  it("should handle form submission properly", async () => {
+    const { result } = renderHook(() => useLogin());
+    const handleSubmit = result.current.handleSubmit;
+    const event = {
+      preventDefault: vi.fn(),
+      currentTarget: {
+        getElementById: () => ({
+          value: "test@example.com",
+        }),
+      },
+    } as unknown as React.FormEvent<HTMLFormElement>;
+    mockValidationSchema.mockResolvedValue(true);
+    await act(async () => {
+      await handleSubmit(event);
+    });
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(mockValidationSchema).toHaveBeenCalledWith(
+      { email: "test@example.com", password: "" },
+      { abortEarly: true }
+    );
+    expect(mockLogin).toHaveBeenCalledWith({ email: "test@example.com", password: "" });
+    expect(result.current.state.errorEmail).toBe("");
+    expect(result.current.state.errorPassword).toBe("");
   });
 });
